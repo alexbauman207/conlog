@@ -1,0 +1,21 @@
+{
+  "name": "conlog",
+  "version": "0.0.0",
+  "description": "A utility to log internet downtime.",
+  "main": "log.js",
+  "scripts": {
+    "test": "echo No test script"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alexbauman207/conlog.git"
+  },
+  "author": "Alex Bauman",
+  "bugs": {
+    "url": "https://github.com/alexbauman207/conlog/issues"
+  },
+  "homepage": "https://github.com/alexbauman207/conlog#readme",
+  "dependencies": {
+    "is-connected": "0.0.5"
+  }
+}
