@@ -1,21 +1,24 @@
 {
   "name": "conlog",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "A utility to log internet downtime.",
   "main": "log.js",
   "scripts": {
+    "start": "node log.js",
     "test": "echo No test script"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/alexbauman207/conlog.git"
+    "url": "git+https://github.com/arbauman/conlog.git"
   },
-  "author": "Alex Bauman",
+  "author": "arbauman",
+  "license": "MIT",
   "bugs": {
-    "url": "https://github.com/alexbauman207/conlog/issues"
+    "url": "https://github.com/arbauman/conlog/issues"
   },
-  "homepage": "https://github.com/alexbauman207/conlog#readme",
+  "homepage": "https://github.com/arbauman/conlog#readme",
   "dependencies": {
-    "is-connected": "0.0.5"
+    "is-connected": "^0.0.5",
+    "thinky": "^2.3.8"
   }
 }

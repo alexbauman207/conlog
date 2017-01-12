@@ -1,40 +1,42 @@
-var fs = require('fs');
-let IsConnected = require('is-connected');
-let isConnectivity = new IsConnected();
-var tmp_start = "";
-var tmp_end = "";
-var read_start = "";
-var read_end = "";
+// Setting Variables
+const IsConnected = require('is-connected');
+const thinky = require('thinky')({
+  db: 'conlog',
+});
+const isConnectivity = new IsConnected();
+let start = "";
+let end = "";
 
+// Model
+const Disconnect = thinky.createModel('Disconnect', {
+  end: Date,
+  start: Date,
+});
 console.log("Beginning Internet check");
 
+// Events
 isConnectivity.on('connected', function connected() {
-    console.log(`${new Date().toLocaleTimeString()}internet connected`);
-    if (tmp_start !== "" && tmp_end === "") {
-        tmp_end = ~~(Date.now()/1000);
-        read_end = new Date().toLocaleTimeString();
-        let date = new Date().toLocaleDateString();
-        let output = `On ${date}, the internet was down for ${((tmp_end - tmp_start) / 60).toFixed(2)} minutes between ${read_start} and ${read_end}\n`;
-        fs.appendFile(`logs/${String(date).split("/").join("-")}.txt`, output, (err) => {
-            if (err) {
-                return console.log(err);
-            }
-            console.log("Log Updated!")
-        });
-        tmp_start = "";
-        tmp_end = "";
-    }
-
+  console.log(`${new Date().toLocaleTimeString()} Internet Connected`);
+  if (start !== "" && end === "") {
+    let disconnect = new Disconnect({
+      start: start,
+      end: new Date(),
+    });
+    disconnect.saveAll().then(function(result) {
+      console.log(`${new Date().toLocaleTimeString()} Successfully saved to database with ID ${result.id}`);
+    });
+    start = "";
+    end = "";
+  }
 });
 
 isConnectivity.on('disconnected', function disconnected() {
-    console.log('internet not connected');
-    if (tmp_start === "") {
-        tmp_start = ~~(Date.now()/1000);
-        read_start = new Date().toLocaleTimeString();
-        console.log("Disconnected.  Time recorded.");
-    }
-
+  console.log(`${new Date().toLocaleTimeString()} Internet Not Connected`);
+  if (start === "") {
+    start = new Date();
+    console.log(`${new Date().toLocaleTimeString()} Disconnected, time recorded.`);
+  }
 });
 
-isConnectivity.init('dns');
+// Initialize
+isConnectivity.init('dns', 'lookup');
