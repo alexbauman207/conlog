@@ -2,9 +2,9 @@
   "name": "conlog",
   "version": "0.1.1",
   "description": "A utility to log internet downtime.",
-  "main": "log.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node log.js",
+    "start": "node app.js",
     "test": "echo No test script"
   },
   "repository": {
