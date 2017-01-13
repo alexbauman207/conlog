@@ -33,7 +33,9 @@ isConnectivity.on('connected', function connected() {
   if(start !== "" && stop === "") {
     stop = new Date();
     if(stop.getTime() - start.getTime() <= 60000) {
-      console.log(`${new Date().toLocaleTimeString()} Outages under a minute are ignored.`)
+      console.log(`${new Date().toLocaleTimeString()} Outages under a minute are ignored.`);
+      start = "";
+      stop = "";
       return;
     } else {
       let disconnect = new Disconnect({
