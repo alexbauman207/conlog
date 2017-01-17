@@ -1,26 +1,23 @@
 // Setting Variables
 const IsConnected = require('is-connected');
+const moment = require('moment')
 const app = require('express')();
 const router = require('express').Router();
 const thinky = require('thinky')({
   db: 'conlog'
 });
-const isConnectivity = new IsConnected();
+const r = thinky.r;
+const isConnectivity = new IsConnected(30000);
 let start = "";
 let stop = "";
 
-router.route('/disconnects').get((req, res) => {
-  thinky.r.table('disconnects').orderBy('start').run((conn, results) => {
-    res.status(200).json(results);
-  });
-});
-router.route('/hourly').get((req, res) => {
-  thinky.r.table('hourly').orderBy('date').run((conn, results) => {
-    res.status(200).json(results);
-  });
-});
 router.route('/status').get((req, res) => {
-  thinky.r.table('status').orderBy('time').run((conn, results) => {
+  r.table('status').orderBy(r.desc('date')).limit(2880).run().then(results => {
+    res.status(200).json(results);
+  });
+});
+router.route('/days').get((req, res) => {
+  r.table('status').orderBy(r.desc('date')).limit(366).run().then(results => {
     res.status(200).json(results);
   });
 });
@@ -28,71 +25,85 @@ router.route('/status').get((req, res) => {
 app.use('/api', router);
 app.listen(8020, () => {
   console.log('App listening on port 8020');
-})
+});
 
 // Models
-const Disconnect = thinky.createModel('disconnects', {
-  stop: Date,
-  start: Date
-});
-const Hourly = thinky.createModel('hourly', {
-  date: Date,
-  hour: Number,
-  minutes: Number
-});
 const Status = thinky.createModel('status', {
-  time: Date,
-  online: Boolean
-});
-console.log("Beginning Internet check");
+  date: Date,
+  online: Number
+}, { pk: 'date' });
+const Days = thinky.createModel('days', {
+  date: Date,
+  online: Number
+}, { pk: 'date' });
 
+// restructure
+// 10-sec > 1 day
+setInterval(() => {
+  if(moment().hour() === 0) {
+    let check = moment.utc();
+    let yesterday = moment().utc().subtract(1, 'days');
+    r.table('status').filter(
+      r.row('date').during(
+                           r.time(yesterday.year(), yesterday.month() + 1, yesterday.date(), 0, 0, 0, '-05:00'), 
+                           r.time(check.year(), check.month() + 1, check.date(), 0, 0, 0, '-05:00')
+                           )
+    ).map(function(doc) {
+      return { totalOnline: doc('online'), count: 1 };
+    }).reduce(function(left, right) {
+      return {
+        totalOnline: left('totalOnline').add(right('totalOnline')),
+        count: left('count').add(right('count'))
+      };
+    }).do(function(res) {
+      return {
+        date: r.time(yesterday.year(), yesterday.month() + 1, yesterday.date(), 'Z'),
+        online: res('totalOnline').div(res('count'))
+      };
+    }).run().then(result => {
+      new Days({
+        date: result.date,
+        online: result.online
+      }).saveAll().then((gotBack) => {
+        console.log(`${moment().format('h:mm:ss A')} Yesterday's data saved: online ${gotBack.online * 100}%`);
+        r.table('status').filter(
+          r.row('date').during(
+                               r.time(yesterday.year(), yesterday.month() + 1, yesterday.date(), 0, 0, 0, '-05:00'), 
+                               r.time(check.year(), check.month() + 1, check.date(), 0, 0, 0, '-05:00')
+                               )
+        ).delete().run().then(result => {
+          console.log(`${moment().format('h:mm:ss A')} Yesterday's entries deleted from Status`)
+        }, reject => {
+          console.log(`Failed deleting yesterday's entries: ${reject}`)
+        })
+      }, reject => {
+        console.log(`Couldn't save Days: ${reject}`);
+      })
+    }, reject => {
+      console.log(`Rethink query failed: ${reject}`)
+    })
+  }
+}, 3600000)
+
+
+console.log(`${moment().format('h:mm:ss A')} Beginning Internet check`);
 // Events
 isConnectivity.on('connected', function connected() {
-  let status = new Status({
-    time: new Date(),
-    online: true
+  new Status({
+    date: moment(),
+    online: 1
   }).saveAll().then((result) => {
-    console.log(`${new Date().toLocaleTimeString()} Internet connected. Status saved as ${result.online}`);
+    console.log(`${moment().format('h:mm:ss A')} Internet connected. Status saved as ${result.online}`);
   });
-  if(start !== "" && stop === "") {
-    stop = new Date();
-    let minutes = ((stop.getTime() - start.getTime()) / 1000 / 60).toFixed(2);
-    if(minutes < 1) {
-      console.log(`${new Date().toLocaleTimeString()} Outages under a minute are ignored.`);
-      start = "";
-      stop = "";
-      return;
-    } else {
-      let disconnect = new Disconnect({
-        start: start,
-        stop: new Date()
-      }).saveAll().then((result) => {
-        console.log(`${new Date().toLocaleTimeString()} Saved to disconnects with ID ${result.id}`);
-      });
-      let hourly = new Hourly({
-        date: start,
-        hour: start.getHours(),
-        minutes
-      }).saveAll().then((result) => {
-        console.log(`${new Date().toLocaleTimeString()} Saved to hourly with ID ${result.id}`);
-      });
-      start = "";
-      stop = "";
-    }
-  }
 });
 
 isConnectivity.on('disconnected', function disconnected() {
-  let status = new Status({
-    time: new Date(),
-    online: false
+  new Status({
+    date: moment(),
+    online: 0
   }).saveAll().then((result) => {
-    console.log(`${new Date().toLocaleTimeString()} Internet disconnected. Status saved as ${result.online}`);
+    console.log(`${moment().format('h:mm:ss A')} Internet disconnected. Status saved as ${result.online}`);
   });
-  if(start === "") {
-    start = new Date();
-    console.log(`${new Date().toLocaleTimeString()} Disconnected, time recorded.`);
-  }
 });
 
 // Initialize

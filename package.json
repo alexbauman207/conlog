@@ -1,6 +1,6 @@
 {
   "name": "conlog",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "A utility to log internet downtime.",
   "main": "app.js",
   "scripts": {
@@ -20,6 +20,7 @@
   "dependencies": {
     "express": "^4.14.0",
     "is-connected": "^0.0.5",
+    "moment": "^2.17.1",
     "thinky": "^2.3.8"
   }
 }
