@@ -17,7 +17,80 @@ router.route('/status').get((req, res) => {
   });
 });
 router.route('/days').get((req, res) => {
-  r.table('status').orderBy(r.desc('date')).limit(366).run().then(results => {
+  r.table('days').orderBy(r.desc('date')).limit(366).run().then(results => {
+    res.status(200).json(results);
+  });
+});
+router.route('/today').get((req, res) => {
+  r.table('status').map((item) => {
+    return {
+      date: item('date'),
+      online: item('online'),
+      count: 1
+    }
+  }).group((row) => {
+    return row('date').dayOfYear();
+  }).reduce((left, right) => {
+    return {
+      date: left('date'),
+      online: left('online').add(right('online')),
+      count: left('count').add(right('count'))
+    }
+  }).ungroup().orderBy(r.desc('group')).map((row) => {
+    return {
+      dayOfYear: row('group'),
+      online: row('reduction')('online').div(row('reduction')('count'))
+    }
+  }).nth(0).without('dayOfYear').run().then(results => {
+    res.status(200).json(results);
+  });
+});
+router.route('/monthly').get((req, res) => {
+  r.table('days').map((day) => {
+    return {
+      date: day('date'),
+      online: day('online'),
+      count: 1
+    }
+  }).group((row) => {
+    return row('date').month();
+  }).reduce((left, right) => {
+    return {
+      date: left('date'),
+      online: left('online').add(right('online')),
+      count: left('count').add(right('count'))
+    }
+  }).ungroup().map((row) => {
+    return {
+      month: row('group'),
+      online: row('reduction')('online').div(row('reduction')('count'))
+    }
+  }).run().then(results => {
+    res.status(200).json(results);
+  });
+});
+
+router.route('/yearly').get((req, res) => {
+  r.table('days').map((day) => {
+    return {
+      date: day('date'),
+      online: day('online'),
+      count: 1
+    }
+  }).group((row) => {
+    return row('date').year();
+  }).reduce((left, right) => {
+    return {
+      date: left('date'),
+      online: left('online').add(right('online')),
+      count: left('count').add(right('count'))
+    }
+  }).ungroup().map((row) => {
+    return {
+      year: row('group'),
+      online: row('reduction')('online').div(row('reduction')('count'))
+    }
+  }).run().then(results => {
     res.status(200).json(results);
   });
 });
@@ -90,7 +163,7 @@ console.log(`${moment().format('h:mm:ss A')} Beginning Internet check`);
 // Events
 isConnectivity.on('connected', function connected() {
   new Status({
-    date: moment(),
+    date: new Date(),
     online: 1
   }).saveAll().then((result) => {
     console.log(`${moment().format('h:mm:ss A')} Internet connected. Status saved as ${result.online}`);
@@ -99,7 +172,7 @@ isConnectivity.on('connected', function connected() {
 
 isConnectivity.on('disconnected', function disconnected() {
   new Status({
-    date: moment(),
+    date: new Date(),
     online: 0
   }).saveAll().then((result) => {
     console.log(`${moment().format('h:mm:ss A')} Internet disconnected. Status saved as ${result.online}`);
