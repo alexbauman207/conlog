@@ -322,7 +322,7 @@ router.route('/disconnects/yearly').get((req, res) => {
 //
 // Lifetime number of disconnects
 router.route('/lifetime/disconnects').get((req, res) => {
-  r.db('Uptime').table('disconnects').map(day => {
+  r.table('disconnects').map(day => {
     return {
       count: 1
     }
