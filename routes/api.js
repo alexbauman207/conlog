@@ -1,9 +1,10 @@
 const router = require('express').Router();
 const thinky = require('../db/thinky');
 const config = require('../config');
-const Log = require('./Log');
+const Log = require('../Log');
 const log = new Log(config.timestamps);
 const r = thinky.r;
+const errorMessage = 'here was an error reading from the database. This may be normal if there is no data in them yet';
 
 router.route('/').get((req, res) => {
   res.status(200).render('../views/index.hbs')
@@ -15,7 +16,7 @@ router.route('/rolling').get((req, res) => {
   r.table('instants').orderBy(r.desc('date')).limit(240).orderBy('date').run().then(result => {
     res.status(200).json(result);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -39,14 +40,14 @@ router.route('/uptime/today').get((req, res) => {
     }
   }).ungroup().orderBy(r.desc('group')).map((row) => {
     return {
-      date: row('reduction')('date'),
+      date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), row('reduction')('date').day(), config.offset),
       online: row('reduction')('online').div(row('reduction')('count')),
       offline: r.expr(1).sub(row('reduction')('online').div(row('reduction')('count')))
     }
   }).nth(0).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -77,7 +78,7 @@ router.route('/uptime/daily').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -108,7 +109,7 @@ router.route('/uptime/monthly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -139,7 +140,7 @@ router.route('/uptime/yearly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -169,7 +170,7 @@ router.route('/duration/daily').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -199,7 +200,7 @@ router.route('/duration/monthly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -229,7 +230,7 @@ router.route('/duration/yearly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -257,7 +258,7 @@ router.route('/disconnects/daily').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -285,7 +286,7 @@ router.route('/disconnects/monthly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -313,7 +314,7 @@ router.route('/disconnects/yearly').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -332,7 +333,7 @@ router.route('/lifetime/disconnects').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });
@@ -351,7 +352,7 @@ router.route('/lifetime/duration').get((req, res) => {
   }).run().then(results => {
     res.status(200).json(results);
   }, reject => {
-    log.error('There was an error reading from the database. This may be normal if there is no data in them yet.');
+    log.error(errorMessage);
     log.error(reject);
   });
 });

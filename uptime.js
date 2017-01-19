@@ -7,7 +7,7 @@ const config = require('./config');
 const api = require('./routes/api');
 const path = require('path');
 app.use('/api', api);
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', './views');
 app.set('view engine', 'hbs');
 //
 // Start server
@@ -19,9 +19,9 @@ app.listen(config.webPort, () => {
 const backup = require('./backup')
 
 // Models
-const Day = require(__dirname+'/models/Day');
-const Instant = require(__dirname+'/models/Instant');
-const Disconnect = require(__dirname+'/models/Disconnect');
+const Day = require('./models/Day');
+const Instant = require('./models/Instant');
+const Disconnect = require('./models/Disconnect');
 
 // Uptime packages
 const moment = require('moment');
@@ -31,16 +31,21 @@ const isConn = require('is-connected');
 const isConnected = new isConn(config.interval);
 let tracker = { start: '', stop: '', duration: '' };
 
-// Events
-isConnected.on('connected', () => {
+// Functions
+function logInstant(state) {
   new Instant({
     date: moment.utc().toISOString(),
-    online: 1
+    online: state
   }).saveAll().then(resolve => {
     log.db('Internet Connected.  Successfully saved Instant to database');
   }, reject => {
     log.error('Internet Connected.  Something went wrong, Instant not saved', 'DAT')
   });
+}
+
+// Events
+isConnected.on('connected', () => {
+  logInstant(1);
   if(tracker.start !== '' && tracker.stop === '') {
     tracker.stop = moment.utc();
     tracker.duration = tracker.stop.diff(tracker.start, 'seconds');
@@ -62,14 +67,7 @@ isConnected.on('connected', () => {
 });
 
 isConnected.on('disconnected', () => {
-  new Instant({
-    date: moment.utc().toISOString(),
-    online: 0
-  }).saveAll().then(resolve => {
-    log.db('Internet Connected.  Successfully saved Instant to database');
-  }, reject => {
-    log.error('Internet Connected.  Something went wrong, Instant not saved', 'DAT')
-  });
+  logInstant(0);
   if(tracker.start === '') {
     tracker.start = moment.utc();
     log.warn('Internet Disconnected. Time recorded.');

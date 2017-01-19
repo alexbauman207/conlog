@@ -6,9 +6,9 @@ const Log = require('./Log');
 const log = new Log(config.timestamps);
 
 // Models
-const Day = require(__dirname+'/models/Day');
-const Instant = require(__dirname+'/models/Instant');
-const Disconnect = require(__dirname+'/models/Disconnect');
+const Day = require('./models/Day');
+const Instant = require('./models/Instant');
+const Disconnect = require('./models/Disconnect');
 let check = '';
 let yesterday = '';
 
