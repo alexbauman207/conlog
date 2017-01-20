@@ -40,7 +40,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /uptime/today/
+##### /api/uptime/today/
 
 ```js
 // All of today's Instants averaged
@@ -51,7 +51,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }
 ```
 
-##### /uptime/daily/
+##### /api/uptime/daily/
 
 ```js
 // All Instants averaged by day
@@ -62,7 +62,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /uptime/monthly/
+##### /api/uptime/monthly/
 
 ```js
 // All Instants averaged by month
@@ -73,7 +73,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /uptime/yearly/
+##### /api/uptime/yearly/
 
 ```js
 // All Instants averaged by year
@@ -84,7 +84,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /disconnects/daily/
+##### /api/disconnects/daily/
 
 ```js
 // All Disconnects averaged, summed, and counted by day
@@ -96,7 +96,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /disconnects/monthly/
+##### /api/disconnects/monthly/
 
 ```js
 // All Disconnects averaged, summed, and counted by month
@@ -108,7 +108,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /disconnects/yearly/
+##### /api/disconnects/yearly/
 
 ```js
 // All Disconnects averaged, summed, and counted by year
@@ -120,7 +120,7 @@ Upon running Uptime, you'll be greeted with a message directing you to the homep
 }]
 ```
 
-##### /lifetime/disconnects/
+##### /api/lifetime/disconnects/
 
 ```js
 // Total count of all disconnects and total offline seconds
