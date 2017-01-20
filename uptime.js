@@ -2,14 +2,14 @@ const express = require('express');
 const app = express();
 const thinky = require('./db/thinky');
 const config = require('./config');
-//
+
 // API settings
 const api = require('./routes/api');
 const path = require('path');
 app.use('/api', api);
 app.set('views', './views');
 app.set('view engine', 'hbs');
-//
+
 // Start server
 app.listen(config.webPort, () => {
   console.log(`JSON API available at http://localhost:${config.webPort}/api`);
