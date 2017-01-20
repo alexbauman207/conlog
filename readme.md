@@ -2,6 +2,10 @@
 
 A utility that checks for a connection to the internet and records to a RethinkDB database.  It also provides a read-only web API intended to integrate with [Cyclotron](http://www.cyclotron.io/).
 
+<p align="center">
+  <img src="http://i.imgur.com/HWIer6p.jpg" />
+</p>
+
 ## Requirements
 
 * Node v.6.0 or above

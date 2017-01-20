@@ -12,27 +12,27 @@ class Log {
     }
 
     warn(text, label = 'WRN') {
-        this.log(text, chalk.bgYellow.black, label)
+        this.log(text, chalk.bgYellow.black, label);
     }
 
     success(text, label = 'SUC') {
-        this.log(text, chalk.bgGreen.black, label)
+        this.log(text, chalk.bgGreen.black, label);
     }
 
     db(text, label = 'DAT') {
-        this.log(text, chalk.bgBlue.black, label)
+        this.log(text, chalk.bgBlue.black, label);
     }
 
     error(text, label = 'ERR') {
-        this.log(text, chalk.bgRed.black, label)
+        this.log(text, chalk.bgRed.black, label);
     }
 
     debug(text, label = 'DBG') {
-        this.log(text, chalk.bgBlack.gray, label)
+        this.log(text, chalk.bgBlack.gray, label);
     }
 
     system(text, label = 'SYS') {
-        this.log(text, chalk.bgWhite.black, label)
+        this.log(text, chalk.bgWhite.black, label);
     }
 
     log(text, color, label) {

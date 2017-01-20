@@ -1,6 +1,6 @@
 {
   "dbName": "Uptime",
-  "dbHost": "192.168.1.124",
+  "dbHost": "localhost",
   "dbPort": 28015,
   "webPort": 8020,
   "offset": "-05:00",

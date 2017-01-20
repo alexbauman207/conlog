@@ -102,7 +102,7 @@ router.route('/uptime/monthly').get((req, res) => {
     }
   }).ungroup().map(row => {
     return {
-      date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), 1, config.offset),
+      date: row('reduction')('date').month(),
       online: row('reduction')('online').div(row('reduction')('count')),
       offline: r.expr(1).sub(row('reduction')('online').div(row('reduction')('count')))
     }
@@ -133,7 +133,7 @@ router.route('/uptime/yearly').get((req, res) => {
     }
   }).ungroup().map(row => {
     return {
-      date: r.time(row('reduction')('date').year(), 1, 1, config.offset),
+      date: row('reduction')('date').year(),
       online: row('reduction')('online').div(row('reduction')('count')),
       offline: r.expr(1).sub(row('reduction')('online').div(row('reduction')('count')))
     }
@@ -146,101 +146,12 @@ router.route('/uptime/yearly').get((req, res) => {
 });
 
 //
-// Average duration by day
-router.route('/duration/daily').get((req, res) => {
-  r.table('disconnects').map(row => {
-    return {
-      date: row('date'),
-      duration: row('duration'),
-      count: 1
-    }
-  }).group(row => {
-    return row('date').inTimezone(config.offset).dayOfYear();
-  }).reduce((left, right) => {
-    return {
-      date: left('date'),
-      duration: left('duration').add(right('duration')),
-      count: left('count').add(right('count'))
-    }
-  }).ungroup().map(row => {
-    return {
-      date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), row('reduction')('date').day(), config.offset),
-      duration: row('reduction')('duration').div(row('reduction')('count'))
-    }
-  }).run().then(results => {
-    res.status(200).json(results);
-  }, reject => {
-    log.error(errorMessage);
-    log.error(reject);
-  });
-});
-
-//
-// Average duration by month
-router.route('/duration/monthly').get((req, res) => {
-  r.table('disconnects').map(row => {
-    return {
-      date: row('date'),
-      duration: row('duration'),
-      count: 1
-    }
-  }).group(row => {
-    return row('date').inTimezone(config.offset).month();
-  }).reduce((left, right) => {
-    return {
-      date: left('date'),
-      duration: left('duration').add(right('duration')),
-      count: left('count').add(right('count'))
-    }
-  }).ungroup().map(row => {
-    return {
-      date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), 1, config.offset),
-      duration: row('reduction')('duration').div(row('reduction')('count'))
-    }
-  }).run().then(results => {
-    res.status(200).json(results);
-  }, reject => {
-    log.error(errorMessage);
-    log.error(reject);
-  });
-});
-
-//
-// Average duration by year
-router.route('/duration/yearly').get((req, res) => {
-  r.table('disconnects').map(row => {
-    return {
-      date: row('date'),
-      duration: row('duration'),
-      count: 1
-    }
-  }).group(row => {
-    return row('date').inTimezone(config.offset).year();
-  }).reduce((left, right) => {
-    return {
-      date: left('date'),
-      duration: left('duration').add(right('duration')),
-      count: left('count').add(right('count'))
-    }
-  }).ungroup().map(row => {
-    return {
-      date: r.time(row('reduction')('date').year(), 1, 1, config.offset),
-      duration: row('reduction')('duration').div(row('reduction')('count'))
-    }
-  }).run().then(results => {
-    res.status(200).json(results);
-  }, reject => {
-    log.error(errorMessage);
-    log.error(reject);
-  });
-});
-
-//
-// Average number of disconnects per day
+// Average duration and count by day
 router.route('/disconnects/daily').get((req, res) => {
   r.table('disconnects').map(row => {
     return {
       date: row('date'),
+      duration: row('duration'),
       count: 1
     }
   }).group(row => {
@@ -248,11 +159,14 @@ router.route('/disconnects/daily').get((req, res) => {
   }).reduce((left, right) => {
     return {
       date: left('date'),
+      duration: left('duration').add(right('duration')),
       count: left('count').add(right('count'))
     }
   }).ungroup().map(row => {
     return {
       date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), row('reduction')('date').day(), config.offset),
+      avgDuration: row('reduction')('duration').div(row('reduction')('count')),
+      totalDuration: row('reduction')('duration'),
       count: row('reduction')('count')
     }
   }).run().then(results => {
@@ -264,11 +178,12 @@ router.route('/disconnects/daily').get((req, res) => {
 });
 
 //
-// Average number of disconnects per month
+// Average duration and count by month
 router.route('/disconnects/monthly').get((req, res) => {
   r.table('disconnects').map(row => {
     return {
       date: row('date'),
+      duration: row('duration'),
       count: 1
     }
   }).group(row => {
@@ -276,11 +191,14 @@ router.route('/disconnects/monthly').get((req, res) => {
   }).reduce((left, right) => {
     return {
       date: left('date'),
+      duration: left('duration').add(right('duration')),
       count: left('count').add(right('count'))
     }
   }).ungroup().map(row => {
     return {
-      date: r.time(row('reduction')('date').year(), row('reduction')('date').month(), 1, config.offset),
+      date: row('reduction')('date').month(),
+      avgDuration: row('reduction')('duration').div(row('reduction')('count')),
+      totalDuration: row('reduction')('duration'),
       count: row('reduction')('count')
     }
   }).run().then(results => {
@@ -292,11 +210,12 @@ router.route('/disconnects/monthly').get((req, res) => {
 });
 
 //
-// Average number of disconnects per year
+// Average duration and count by year
 router.route('/disconnects/yearly').get((req, res) => {
   r.table('disconnects').map(row => {
     return {
       date: row('date'),
+      duration: row('duration'),
       count: 1
     }
   }).group(row => {
@@ -304,11 +223,14 @@ router.route('/disconnects/yearly').get((req, res) => {
   }).reduce((left, right) => {
     return {
       date: left('date'),
+      duration: left('duration').add(right('duration')),
       count: left('count').add(right('count'))
     }
   }).ungroup().map(row => {
     return {
-      date: r.time(row('reduction')('date').year(), 1, 1, config.offset),
+      date: row('reduction')('date').year(),
+      avgDuration: row('reduction')('duration').div(row('reduction')('count')),
+      totalDuration: row('reduction')('duration'),
       count: row('reduction')('count')
     }
   }).run().then(results => {
@@ -324,30 +246,13 @@ router.route('/disconnects/yearly').get((req, res) => {
 router.route('/lifetime/disconnects').get((req, res) => {
   r.table('disconnects').map(day => {
     return {
+      duration: day('duration'),
       count: 1
     }
   }).reduce((left, right) => {
     return {
+      duration: left('duration').add(right('duration')),
       count: left('count').add(right('count'))
-    }
-  }).run().then(results => {
-    res.status(200).json(results);
-  }, reject => {
-    log.error(errorMessage);
-    log.error(reject);
-  });
-});
-
-//
-// Lifetime duration
-router.route('/lifetime/duration').get((req, res) => {
-  r.table('disconnects').map(row => {
-    return {
-      duration: row('duration')
-    }
-  }).reduce((left, right) => {
-    return {
-      duration: left('duration').add(right('duration'))
     }
   }).run().then(results => {
     res.status(200).json(results);

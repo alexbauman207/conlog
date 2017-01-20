@@ -1,4 +1,4 @@
-const express = require('express')
+const express = require('express');
 const app = express();
 const thinky = require('./db/thinky');
 const config = require('./config');
@@ -16,7 +16,7 @@ app.listen(config.webPort, () => {
 });
 
 // Aggregates Instants and converts them into Days daily
-const backup = require('./backup')
+const backup = require('./backup');
 
 // Models
 const Day = require('./models/Day');
@@ -37,9 +37,18 @@ function logInstant(state) {
     date: moment.utc().toISOString(),
     online: state
   }).saveAll().then(resolve => {
-    log.db('Internet Connected.  Successfully saved Instant to database');
+    if(state === 1) {
+      log.db(`Internet Connected.  Successfully saved Instant to database as ${state}`);
+    } else {
+      log.db(`Internet Disconnected.  Successfully saved Instant to database as ${state}`);
+    }
+    
   }, reject => {
-    log.error('Internet Connected.  Something went wrong, Instant not saved', 'DAT')
+    if(state === 1) {
+      log.error('Internet Connected.  Something went wrong, Instant not saved', 'DAT');
+    } else {
+      log.error('Internet Disconnected.  Something went wrong, Instant not saved', 'DAT');
+    }
   });
 }
 
@@ -72,7 +81,7 @@ isConnected.on('disconnected', () => {
     tracker.start = moment.utc();
     log.warn('Internet Disconnected. Time recorded.');
   }
-})
+});
 
 //Initialization
 isConnected.init('dns', 'lookup');
