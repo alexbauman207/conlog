@@ -23,7 +23,7 @@ setInterval(() => {
         r.time(check.year(), check.month() + 1, check.date(), 0, 0, 0, config.offset)
       )
     ).map(row => {
-      return { totalOnline: doc('online'), count: 1 };
+      return { totalOnline: row('online'), count: 1 };
     }).reduce((left, right) => {
       return {
         totalOnline: left('totalOnline').add(right('totalOnline')),

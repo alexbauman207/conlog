@@ -27,14 +27,13 @@ const Disconnect = require('./models/Disconnect');
 const moment = require('moment');
 const Log = require('./Log');
 const log = new Log(config.timestamps);
-const isConn = require('is-connected');
-const isConnected = new isConn(config.interval);
+const isOnline = require('is-online');
 let tracker = { start: '', stop: '', duration: '' };
 
 // Functions
-function logInstant(state) {
+function logInstant(state, timestamp) {
   new Instant({
-    date: moment.utc().toISOString(),
+    date: timestamp.toISOString(),
     online: state
   }).saveAll().then(resolve => {
     if(state === 1) {
@@ -53,35 +52,37 @@ function logInstant(state) {
 }
 
 // Events
-isConnected.on('connected', () => {
-  logInstant(1);
-  if(tracker.start !== '' && tracker.stop === '') {
-    tracker.stop = moment.utc();
-    tracker.duration = tracker.stop.diff(tracker.start, 'seconds');
-    if(tracker.duration >= 60) {
-      new Disconnect({
-        date: tracker.start.toISOString(),
-        duration: tracker.duration
-      }).saveAll().then(resolve => {
-        log.db('Internet Connected.  Successfully saved Disconnect to database');
-      }, reject => {
-        log.error('Internet Connected.  Something went wrong, Disconnect not saved', 'DAT');
-      });
-      tracker = { start: '', stop: '', duration: '' };
+setInterval(() => {
+  const checkTime = moment.utc();
+  isOnline().then(online => {
+    if (online) {
+      logInstant(1, checkTime);
+      if(tracker.start !== '' && tracker.stop === '') {
+        tracker.stop = checkTime;
+        tracker.duration = tracker.stop.diff(tracker.start, 'seconds');
+        if(tracker.duration >= 60) {
+          new Disconnect({
+            date: tracker.start.toISOString(),
+            duration: tracker.duration
+          }).saveAll().then(resolve => {
+            log.db('Internet Connected.  Successfully saved Disconnect to database');
+          }, reject => {
+            log.error('Internet Connected.  Something went wrong, Disconnect not saved', 'DAT');
+          });
+          tracker = { start: '', stop: '', duration: '' };
+        } else {
+          log.system('Internet Connected.  Disconnect shorter than 1 minute, discarded.');
+          tracker = { start: '', stop: '', duration: '' };
+        }
+      }
     } else {
-      log.system('Internet Connected.  Disconnect shorter than 1 minute, discarded.');
-      tracker = { start: '', stop: '', duration: '' };
+      logInstant(0, checkTime);
+      if(tracker.start === '') {
+        tracker.start = checkTime;
+        log.warn('Internet Disconnected. Time recorded.');
+      }
     }
-  }
-});
-
-isConnected.on('disconnected', () => {
-  logInstant(0);
-  if(tracker.start === '') {
-    tracker.start = moment.utc();
-    log.warn('Internet Disconnected. Time recorded.');
-  }
-});
-
-//Initialization
-isConnected.init('dns', 'lookup');
+  }).catch(err => {
+    log.warn('Something went horribly wrong')
+  })
+}, config.interval)
